@@ -96,12 +96,19 @@ fn main() {
 
 ### 🏗️ Architecture
 
+![Architecture Diagram](docs/images/architecture.png)
+
 The system implements a layered security architecture:
 
-1. **Wallet Management Layer**: Create and manage hot/cold wallets
-2. **Transaction Layer**: Secure deposit and withdrawal operations
-3. **Audit Layer**: Complete transaction logging and reporting
-4. **Security Layer**: Multi-signature and HSM integration (planned)
+1. **Client Layer**: CLI and future REST API
+2. **Custody System**: Wallet management and operations
+3. **Wallet Types**: Hot wallets (operational) and Cold wallets (storage)
+4. **Security Layer**: Key management, multi-signature, HSM integration
+5. **Audit & Compliance**: Complete transaction logging
+
+### 🔒 Security Flow
+
+![Security Flow](docs/images/security_flow.png)
 
 ### 🔒 Security Features
 
@@ -139,6 +146,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Trilha de Auditoria**: Histórico completo de transações e relatórios de conformidade
 - **Operações Type-Safe**: Aproveita as garantias de segurança do Rust
 - **Rastreamento de Saldo em Tempo Real**: Monitore todos os saldos de carteiras instantaneamente
+
+### 🏗️ Arquitetura
+
+![Diagrama de Arquitetura](docs/images/architecture.png)
+
+O sistema implementa uma arquitetura de segurança em camadas:
+
+1. **Camada de Cliente**: CLI e futura REST API
+2. **Sistema de Custódia**: Gerenciamento de carteiras e operações
+3. **Tipos de Carteira**: Hot wallets (operacionais) e Cold wallets (armazenamento)
+4. **Camada de Segurança**: Gerenciamento de chaves, multi-assinatura, integração HSM
+5. **Auditoria e Compliance**: Registro completo de transações
+
+### 🔒 Fluxo de Segurança
+
+![Fluxo de Segurança](docs/images/security_flow.png)
 
 ### 🛠️ Instalação
 
