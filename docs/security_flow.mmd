@@ -1,0 +1,47 @@
+sequenceDiagram
+    participant User
+    participant System as Custody System
+    participant HotWallet as Hot Wallet
+    participant ColdWallet as Cold Wallet
+    participant Audit as Audit Log
+    
+    User->>System: Create hot wallet
+    System->>HotWallet: Initialize wallet
+    HotWallet->>HotWallet: Generate address
+    HotWallet-->>System: Wallet created
+    System->>Audit: Log wallet creation
+    System-->>User: Hot wallet ready
+    
+    User->>System: Create cold wallet
+    System->>ColdWallet: Initialize wallet
+    ColdWallet->>ColdWallet: Generate address (offline)
+    ColdWallet-->>System: Wallet created
+    System->>Audit: Log wallet creation
+    System-->>User: Cold wallet ready
+    
+    User->>System: Deposit to hot wallet
+    System->>HotWallet: Check wallet exists
+    HotWallet-->>System: Wallet valid
+    System->>HotWallet: Add funds
+    System->>Audit: Log deposit transaction
+    System-->>User: Deposit confirmed
+    
+    User->>System: Withdraw from hot wallet
+    System->>HotWallet: Check balance
+    alt Sufficient balance
+        HotWallet-->>System: Balance OK
+        System->>HotWallet: Deduct funds
+        System->>Audit: Log withdrawal
+        System-->>User: Withdrawal successful
+    else Insufficient balance
+        HotWallet-->>System: Insufficient funds
+        System-->>User: Error: Insufficient balance
+    end
+    
+    User->>System: Get total balance
+    System->>HotWallet: Query balance
+    System->>ColdWallet: Query balance
+    HotWallet-->>System: Hot balance
+    ColdWallet-->>System: Cold balance
+    System->>System: Calculate total
+    System-->>User: Total balance
