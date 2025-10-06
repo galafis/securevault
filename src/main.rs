@@ -109,3 +109,80 @@ fn main() {
 
     println!("\n📊 Final Total Balance: {} BTC", system.get_total_balance());
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_create_wallet() {
+        let mut system = CustodySystem::new();
+        let wallet = system.create_wallet(
+            "test_001".to_string(),
+            "0x1234".to_string(),
+            WalletType::Hot,
+        );
+        
+        assert_eq!(wallet.id, "test_001");
+        assert_eq!(wallet.address, "0x1234");
+        assert_eq!(wallet.balance, 0.0);
+    }
+
+    #[test]
+    fn test_deposit() {
+        let mut system = CustodySystem::new();
+        system.create_wallet("test_001".to_string(), "0x1234".to_string(), WalletType::Hot);
+        
+        let result = system.deposit("test_001", 10.5);
+        assert!(result.is_ok());
+        
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.balance, 10.5);
+    }
+
+    #[test]
+    fn test_withdraw_success() {
+        let mut system = CustodySystem::new();
+        system.create_wallet("test_001".to_string(), "0x1234".to_string(), WalletType::Hot);
+        system.deposit("test_001", 10.0).unwrap();
+        
+        let result = system.withdraw("test_001", 5.0);
+        assert!(result.is_ok());
+        
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.balance, 5.0);
+    }
+
+    #[test]
+    fn test_withdraw_insufficient_balance() {
+        let mut system = CustodySystem::new();
+        system.create_wallet("test_001".to_string(), "0x1234".to_string(), WalletType::Hot);
+        system.deposit("test_001", 5.0).unwrap();
+        
+        let result = system.withdraw("test_001", 10.0);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Insufficient balance");
+    }
+
+    #[test]
+    fn test_total_balance() {
+        let mut system = CustodySystem::new();
+        system.create_wallet("hot_001".to_string(), "0x1234".to_string(), WalletType::Hot);
+        system.create_wallet("cold_001".to_string(), "0x5678".to_string(), WalletType::Cold);
+        
+        system.deposit("hot_001", 10.5).unwrap();
+        system.deposit("cold_001", 100.0).unwrap();
+        
+        assert_eq!(system.get_total_balance(), 110.5);
+    }
+
+    #[test]
+    fn test_withdraw_from_nonexistent_wallet() {
+        let mut system = CustodySystem::new();
+        
+        let result = system.withdraw("nonexistent", 10.0);
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Wallet not found");
+    }
+}
