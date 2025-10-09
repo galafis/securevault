@@ -1,5 +1,8 @@
 # 🔐 SecureVault - Cryptocurrency Custody System
 
+[![Code Coverage](https://codecov.io/gh/galafis/securevault/branch/main/graph/badge.svg)](https://codecov.io/gh/galafis/securevault)
+
+
 [![Rust](https://img.shields.io/badge/rust-1.90%2B-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Security](https://img.shields.io/badge/security-enterprise-green.svg)]()
@@ -26,7 +29,7 @@
 ### 🛠️ Installation
 
 ```bash
-git clone https://github.com/gabriellafis/securevault.git
+git clone https://github.com/galafis/securevault.git
 cd securevault
 cargo build --release
 ```
