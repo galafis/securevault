@@ -878,7 +878,7 @@ mod tests {
     #[test]
     fn test_large_amounts() {
         const LARGE_AMOUNT: f64 = 1_000_000_000.0;
-        
+
         let mut system = CustodySystem::new();
         system
             .create_wallet(
@@ -897,7 +897,7 @@ mod tests {
     #[test]
     fn test_decimal_precision() {
         const EPSILON: f64 = 1e-5;
-        
+
         let mut system = CustodySystem::new();
         system
             .create_wallet(
