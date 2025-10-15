@@ -877,6 +877,8 @@ mod tests {
 
     #[test]
     fn test_large_amounts() {
+        const LARGE_AMOUNT: f64 = 1_000_000_000.0;
+        
         let mut system = CustodySystem::new();
         system
             .create_wallet(
@@ -886,7 +888,6 @@ mod tests {
             )
             .unwrap();
 
-        const LARGE_AMOUNT: f64 = 1_000_000_000.0;
         system.deposit("test_001", LARGE_AMOUNT).unwrap();
 
         let wallet = system.get_wallet("test_001").unwrap();
@@ -895,6 +896,8 @@ mod tests {
 
     #[test]
     fn test_decimal_precision() {
+        const EPSILON: f64 = 1e-5;
+        
         let mut system = CustodySystem::new();
         system
             .create_wallet(
@@ -907,7 +910,6 @@ mod tests {
         system.deposit("test_001", 0.12345678).unwrap();
         system.deposit("test_001", 0.87654322).unwrap();
 
-        const EPSILON: f64 = 1e-5;
         let wallet = system.get_wallet("test_001").unwrap();
         assert!((wallet.balance - 1.0).abs() < EPSILON);
     }
