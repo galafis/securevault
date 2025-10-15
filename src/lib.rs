@@ -615,4 +615,399 @@ mod tests {
         assert_eq!(system.wallet_count(), 0);
         assert_eq!(system.get_total_balance(), 0.0);
     }
+
+    #[test]
+    fn test_wallet_type_hot() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "hot_wallet".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        let wallet = system.get_wallet("hot_wallet").unwrap();
+        assert_eq!(wallet.wallet_type, WalletType::Hot);
+    }
+
+    #[test]
+    fn test_wallet_type_cold() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "cold_wallet".to_string(),
+                "0x5678".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+
+        let wallet = system.get_wallet("cold_wallet").unwrap();
+        assert_eq!(wallet.wallet_type, WalletType::Cold);
+    }
+
+    #[test]
+    fn test_multiple_sequential_deposits() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 10.0).unwrap();
+        system.deposit("test_001", 20.0).unwrap();
+        system.deposit("test_001", 15.5).unwrap();
+
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.balance, 45.5);
+    }
+
+    #[test]
+    fn test_multiple_sequential_withdrawals() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 100.0).unwrap();
+        system.withdraw("test_001", 10.0).unwrap();
+        system.withdraw("test_001", 20.0).unwrap();
+        system.withdraw("test_001", 15.5).unwrap();
+
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.balance, 54.5);
+    }
+
+    #[test]
+    fn test_transaction_type_deposit() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 10.0).unwrap();
+
+        let transactions = system.get_wallet_transactions("test_001");
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].transaction_type, TransactionType::Deposit);
+        assert_eq!(transactions[0].amount, 10.0);
+    }
+
+    #[test]
+    fn test_transaction_type_withdrawal() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 20.0).unwrap();
+        system.withdraw("test_001", 5.0).unwrap();
+
+        let transactions = system.get_wallet_transactions("test_001");
+        assert_eq!(transactions.len(), 2);
+        assert_eq!(
+            transactions[1].transaction_type,
+            TransactionType::Withdrawal
+        );
+        assert_eq!(transactions[1].amount, 5.0);
+    }
+
+    #[test]
+    fn test_transaction_has_timestamp() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 10.0).unwrap();
+
+        let transactions = system.get_wallet_transactions("test_001");
+        assert_eq!(transactions.len(), 1);
+        assert!(transactions[0].timestamp > 0);
+    }
+
+    #[test]
+    fn test_get_all_wallets() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "wallet_1".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+        system
+            .create_wallet(
+                "wallet_2".to_string(),
+                "0x5678".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+
+        let all_wallets = system.get_all_wallets();
+        assert_eq!(all_wallets.len(), 2);
+        assert!(all_wallets.contains_key("wallet_1"));
+        assert!(all_wallets.contains_key("wallet_2"));
+    }
+
+    #[test]
+    fn test_transfer_zero_amount() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "wallet_1".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+        system
+            .create_wallet(
+                "wallet_2".to_string(),
+                "0x5678".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+
+        system.deposit("wallet_1", 100.0).unwrap();
+        let result = system.transfer("wallet_1", "wallet_2", 0.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("positive"));
+    }
+
+    #[test]
+    fn test_empty_transaction_history() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        let transactions = system.get_wallet_transactions("test_001");
+        assert_eq!(transactions.len(), 0);
+    }
+
+    #[test]
+    fn test_transaction_history_isolation() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "wallet_1".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+        system
+            .create_wallet(
+                "wallet_2".to_string(),
+                "0x5678".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+
+        system.deposit("wallet_1", 10.0).unwrap();
+        system.deposit("wallet_2", 20.0).unwrap();
+        system.withdraw("wallet_1", 5.0).unwrap();
+
+        let wallet_1_txs = system.get_wallet_transactions("wallet_1");
+        let wallet_2_txs = system.get_wallet_transactions("wallet_2");
+
+        assert_eq!(wallet_1_txs.len(), 2);
+        assert_eq!(wallet_2_txs.len(), 1);
+    }
+
+    #[test]
+    fn test_transfer_creates_audit_trail() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "wallet_1".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+        system
+            .create_wallet(
+                "wallet_2".to_string(),
+                "0x5678".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+
+        system.deposit("wallet_1", 100.0).unwrap();
+        system.transfer("wallet_1", "wallet_2", 30.0).unwrap();
+
+        let wallet_1_txs = system.get_wallet_transactions("wallet_1");
+        let wallet_2_txs = system.get_wallet_transactions("wallet_2");
+
+        // wallet_1 should have 1 deposit + 1 withdrawal
+        assert_eq!(wallet_1_txs.len(), 2);
+        assert_eq!(wallet_1_txs[0].transaction_type, TransactionType::Deposit);
+        assert_eq!(
+            wallet_1_txs[1].transaction_type,
+            TransactionType::Withdrawal
+        );
+
+        // wallet_2 should have 1 deposit
+        assert_eq!(wallet_2_txs.len(), 1);
+        assert_eq!(wallet_2_txs[0].transaction_type, TransactionType::Deposit);
+        assert_eq!(wallet_2_txs[0].amount, 30.0);
+    }
+
+    #[test]
+    fn test_large_amounts() {
+        const LARGE_AMOUNT: f64 = 1_000_000_000.0;
+        
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", LARGE_AMOUNT).unwrap();
+
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.balance, LARGE_AMOUNT);
+    }
+
+    #[test]
+    fn test_decimal_precision() {
+        const EPSILON: f64 = 1e-5;
+        
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 0.12345678).unwrap();
+        system.deposit("test_001", 0.87654322).unwrap();
+
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert!((wallet.balance - 1.0).abs() < EPSILON);
+    }
+
+    #[test]
+    fn test_get_wallet_returns_correct_data() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0xABCDEF1234567890".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 42.5).unwrap();
+
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.id, "test_001");
+        assert_eq!(wallet.address, "0xABCDEF1234567890");
+        assert_eq!(wallet.balance, 42.5);
+        assert_eq!(wallet.wallet_type, WalletType::Cold);
+    }
+
+    #[test]
+    fn test_get_wallet_nonexistent() {
+        let system = CustodySystem::new();
+        let wallet = system.get_wallet("nonexistent");
+        assert!(wallet.is_none());
+    }
+
+    #[test]
+    fn test_wallet_balance_after_multiple_operations() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_001".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_001", 100.0).unwrap();
+        system.withdraw("test_001", 30.0).unwrap();
+        system.deposit("test_001", 50.0).unwrap();
+        system.withdraw("test_001", 20.0).unwrap();
+
+        let wallet = system.get_wallet("test_001").unwrap();
+        assert_eq!(wallet.balance, 100.0);
+    }
+
+    #[test]
+    fn test_total_balance_with_multiple_wallets() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "wallet_1".to_string(),
+                "0x1111".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+        system
+            .create_wallet(
+                "wallet_2".to_string(),
+                "0x2222".to_string(),
+                WalletType::Cold,
+            )
+            .unwrap();
+        system
+            .create_wallet(
+                "wallet_3".to_string(),
+                "0x3333".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("wallet_1", 25.0).unwrap();
+        system.deposit("wallet_2", 50.0).unwrap();
+        system.deposit("wallet_3", 75.0).unwrap();
+
+        assert_eq!(system.get_total_balance(), 150.0);
+    }
+
+    #[test]
+    fn test_transaction_wallet_id() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "test_wallet".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("test_wallet", 10.0).unwrap();
+
+        let transactions = system.get_wallet_transactions("test_wallet");
+        assert_eq!(transactions.len(), 1);
+        assert_eq!(transactions[0].wallet_id, "test_wallet");
+    }
 }
