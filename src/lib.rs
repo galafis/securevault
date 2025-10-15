@@ -886,11 +886,11 @@ mod tests {
             )
             .unwrap();
 
-        let large_amount = 1_000_000_000.0;
-        system.deposit("test_001", large_amount).unwrap();
+        const LARGE_AMOUNT: f64 = 1_000_000_000.0;
+        system.deposit("test_001", LARGE_AMOUNT).unwrap();
 
         let wallet = system.get_wallet("test_001").unwrap();
-        assert_eq!(wallet.balance, large_amount);
+        assert_eq!(wallet.balance, LARGE_AMOUNT);
     }
 
     #[test]
@@ -907,8 +907,9 @@ mod tests {
         system.deposit("test_001", 0.12345678).unwrap();
         system.deposit("test_001", 0.87654322).unwrap();
 
+        const EPSILON: f64 = 1e-5;
         let wallet = system.get_wallet("test_001").unwrap();
-        assert!((wallet.balance - 1.0).abs() < 0.00001);
+        assert!((wallet.balance - 1.0).abs() < EPSILON);
     }
 
     #[test]
