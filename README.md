@@ -1,7 +1,5 @@
 # 🔐 SecureVault - Cryptocurrency Custody System
 
-[![Rust CI](https://github.com/galafis/securevault/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/galafis/securevault/actions)
-[![Code Coverage](https://codecov.io/gh/galafis/securevault/branch/main/graph/badge.svg)](https://codecov.io/gh/galafis/securevault)
 [![Rust](https://img.shields.io/badge/rust-1.90%2B-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Security](https://img.shields.io/badge/security-enterprise-green.svg)]()
