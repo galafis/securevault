@@ -1,13 +1,11 @@
 graph TB
     subgraph "Client Layer"
         CLI[Command Line Interface]
-        API[REST API - Future]
     end
     
     subgraph "Custody System"
-        CS[Custody System]
-        WM[Wallet Manager]
-        CS --> WM
+        CS[CustodySystem]
+        CS --> WM[Wallet Management]
     end
     
     subgraph "Wallet Types"
@@ -20,44 +18,26 @@ graph TB
     subgraph "Operations"
         DEP[Deposit]
         WITH[Withdraw]
+        TXF[Transfer]
         BAL[Balance Check]
     end
     
-    subgraph "Security Layer"
-        KM[Key Management]
-        MS[Multi-Signature - Future]
-        HSM[HSM Integration - Future]
-        KM --> MS
-        KM --> HSM
-    end
-    
-    subgraph "Audit & Compliance"
-        AL[Audit Log]
+    subgraph "Audit Trail"
         TR[Transaction Records]
-        AL --> TR
-    end
-    
-    subgraph "Storage"
-        DB[(Database - Future)]
-        FS[File System]
     end
     
     CLI --> CS
-    API --> CS
     CS --> DEP
     CS --> WITH
+    CS --> TXF
     CS --> BAL
     HW --> DEP
     HW --> WITH
     CW --> DEP
     CW --> WITH
-    CS --> KM
-    CS --> AL
-    AL --> FS
-    AL --> DB
+    CS --> TR
     
     style HW fill:#ff9999
     style CW fill:#99ccff
-    style KM fill:#ffcc99
-    style AL fill:#99ff99
+    style TR fill:#99ff99
     style CS fill:#cc99ff

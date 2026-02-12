@@ -19,7 +19,8 @@ We take the security of SecureVault seriously. If you believe you have found a s
 
 ### Please Do
 
-1. **Email the maintainer** with details of the vulnerability
+1. **Contact the maintainer via GitHub** with details of the vulnerability
+   - Use a private security advisory on the repository
    - Include steps to reproduce the issue
    - Describe the potential impact
    - Suggest a fix if possible

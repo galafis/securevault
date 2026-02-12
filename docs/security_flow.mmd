@@ -3,35 +3,33 @@ sequenceDiagram
     participant System as Custody System
     participant HotWallet as Hot Wallet
     participant ColdWallet as Cold Wallet
-    participant Audit as Audit Log
+    participant Audit as Transaction Log
     
-    User->>System: Create hot wallet
-    System->>HotWallet: Initialize wallet
-    HotWallet->>HotWallet: Generate address
+    User->>System: Create hot wallet (id, address, type)
+    System->>HotWallet: Initialize wallet with zero balance
     HotWallet-->>System: Wallet created
-    System->>Audit: Log wallet creation
     System-->>User: Hot wallet ready
     
-    User->>System: Create cold wallet
-    System->>ColdWallet: Initialize wallet
-    ColdWallet->>ColdWallet: Generate address (offline)
+    User->>System: Create cold wallet (id, address, type)
+    System->>ColdWallet: Initialize wallet with zero balance
     ColdWallet-->>System: Wallet created
-    System->>Audit: Log wallet creation
     System-->>User: Cold wallet ready
     
     User->>System: Deposit to hot wallet
     System->>HotWallet: Check wallet exists
     HotWallet-->>System: Wallet valid
+    System->>System: Validate amount > 0
     System->>HotWallet: Add funds
-    System->>Audit: Log deposit transaction
+    System->>Audit: Record deposit transaction
     System-->>User: Deposit confirmed
     
     User->>System: Withdraw from hot wallet
     System->>HotWallet: Check balance
+    System->>System: Validate amount > 0
     alt Sufficient balance
         HotWallet-->>System: Balance OK
         System->>HotWallet: Deduct funds
-        System->>Audit: Log withdrawal
+        System->>Audit: Record withdrawal transaction
         System-->>User: Withdrawal successful
     else Insufficient balance
         HotWallet-->>System: Insufficient funds

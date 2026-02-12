@@ -1,3 +1,16 @@
+//! # SecureVault
+//!
+//! A cryptocurrency custody system with hot/cold wallet separation
+//! and transaction audit trails.
+//!
+//! ## Important Note on Precision
+//!
+//! This implementation uses `f64` for balances and amounts. Floating-point
+//! arithmetic is not exact, so this is **not suitable for production financial
+//! systems** where precise decimal math is required. A production system should
+//! use integer arithmetic (e.g., satoshis/wei) or a fixed-precision decimal
+//! library.
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -208,6 +221,10 @@ impl CustodySystem {
             return Err("Transfer amount must be positive".to_string());
         }
 
+        if from_id == to_id {
+            return Err("Cannot transfer to the same wallet".to_string());
+        }
+
         // Validate both wallets exist first
         if !self.wallet_exists(from_id) {
             return Err(format!("Source wallet '{}' not found", from_id));
@@ -236,7 +253,7 @@ impl CustodySystem {
         use std::time::{SystemTime, UNIX_EPOCH};
         SystemTime::now()
             .duration_since(UNIX_EPOCH)
-            .unwrap()
+            .unwrap_or_default()
             .as_secs()
     }
 }
@@ -1009,5 +1026,22 @@ mod tests {
         let transactions = system.get_wallet_transactions("test_wallet");
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].wallet_id, "test_wallet");
+    }
+
+    #[test]
+    fn test_transfer_to_self() {
+        let mut system = CustodySystem::new();
+        system
+            .create_wallet(
+                "wallet_1".to_string(),
+                "0x1234".to_string(),
+                WalletType::Hot,
+            )
+            .unwrap();
+
+        system.deposit("wallet_1", 100.0).unwrap();
+        let result = system.transfer("wallet_1", "wallet_1", 10.0);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("same wallet"));
     }
 }

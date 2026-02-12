@@ -1,8 +1,7 @@
 # 🔐 SecureVault - Cryptocurrency Custody System
 
-[![Rust](https://img.shields.io/badge/rust-1.90%2B-orange.svg)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/rust-1.70%2B-orange.svg)](https://www.rust-lang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-[![Security](https://img.shields.io/badge/security-enterprise-green.svg)]()
 
 [English](#english) | [Português](#português)
 
@@ -12,16 +11,16 @@
 
 ### 🚀 Overview
 
-**SecureVault** is an enterprise-grade cryptocurrency custody system built in Rust, designed for secure storage and management of digital assets. It features multi-signature wallets, hot/cold wallet separation, and comprehensive audit trails.
+**SecureVault** is a cryptocurrency custody system built in Rust, designed for secure storage and management of digital assets. It features hot/cold wallet separation, transaction audit trails, and input validation.
 
 ### ✨ Key Features
 
-- **Multi-Signature Wallets**: Require multiple approvals for transactions
 - **Hot/Cold Wallet Separation**: Segregate operational and storage funds
-- **Secure Key Management**: Hardware Security Module (HSM) integration ready
-- **Audit Trail**: Complete transaction history and compliance reporting
-- **Type-Safe Operations**: Leverages Rust's safety guarantees
-- **Real-Time Balance Tracking**: Monitor all wallet balances instantly
+- **Audit Trail**: Transaction history for all wallet operations
+- **Type-Safe Operations**: Leverages Rust's ownership and type system
+- **Balance Tracking**: Monitor all wallet balances
+- **Transfer Support**: Move funds between wallets with validation
+- **Input Validation**: All amounts and operations are validated before execution
 
 ### 🛠️ Installation
 
@@ -174,11 +173,10 @@ fn main() {
 
 The system implements a layered security architecture:
 
-1. **Client Layer**: CLI and future REST API
+1. **Client Layer**: CLI interface (REST API planned for future)
 2. **Custody System**: Wallet management and operations
 3. **Wallet Types**: Hot wallets (operational) and Cold wallets (storage)
-4. **Security Layer**: Key management, multi-signature, HSM integration
-5. **Audit & Compliance**: Complete transaction logging
+4. **Audit Trail**: Transaction logging for all wallet operations
 
 ### 🔒 Security Flow
 
@@ -195,7 +193,7 @@ The system implements a layered security architecture:
 
 ### 🧪 Testing
 
-The project includes comprehensive test coverage with 21+ unit tests covering:
+The project includes 41 unit tests and 1 doc test covering:
 
 - Wallet creation and management
 - Deposit and withdrawal operations
@@ -279,7 +277,7 @@ Built with Rust for optimal performance:
 
 #### Prerequisites
 
-- Rust 1.90 or higher
+- Rust 1.70 or higher
 - Cargo (comes with Rust)
 
 #### Building from source
@@ -316,7 +314,7 @@ The project maintains high code quality standards:
 - ✅ All code passes `clippy` lints with no warnings
 - ✅ Comprehensive test coverage
 - ✅ Documentation for all public APIs
-- ✅ Continuous Integration via GitHub Actions
+- ✅ Passes `clippy` lints with no warnings
 
 ### 🐛 Troubleshooting
 
@@ -387,7 +385,6 @@ If you discover a security vulnerability, please send an email to the project ma
 - [x] Transfer between wallets
 - [x] Comprehensive error handling
 - [x] Unit tests with high coverage
-- [x] CI/CD pipeline
 - [ ] Multi-signature wallet support
 - [ ] Hardware Security Module (HSM) integration
 - [ ] REST API
@@ -398,9 +395,8 @@ If you discover a security vulnerability, please send an email to the project ma
 
 ### 📊 Project Statistics
 
-- **Test Coverage**: 21+ unit tests, 1 doc test
-- **Lines of Code**: ~400+ lines
-- **Dependencies**: Minimal (serde, serde_json)
+- **Test Coverage**: 41 unit tests, 1 doc test
+- **Dependencies**: Minimal (serde)
 - **Language**: 100% Rust
 
 ### 📄 License
@@ -410,11 +406,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### 👤 Author
 
 **Gabriel Demetrios Lafis**
-- Systems Analyst & Developer
-- IT Manager
-- Cybersecurity Specialist
-- Business Intelligence / Business Analyst
-- Data Analyst & Data Scientist
 
 ---
 
@@ -422,18 +413,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ### 🚀 Visão Geral
 
-**SecureVault** é um sistema de custódia de criptomoedas de nível empresarial construído em Rust, projetado para armazenamento e gerenciamento seguro de ativos digitais. Possui carteiras multi-assinatura, separação de carteiras quentes/frias e trilhas de auditoria abrangentes.
+**SecureVault** é um sistema de custódia de criptomoedas construído em Rust, projetado para armazenamento e gerenciamento seguro de ativos digitais. Possui separação de carteiras quentes/frias, trilhas de auditoria de transações e validação de entrada.
 
 ### ✨ Principais Recursos
 
-- **Carteiras Multi-Assinatura**: Requer múltiplas aprovações para transações (planejado)
 - **Separação Hot/Cold Wallet**: Segrega fundos operacionais e de armazenamento
-- **Gerenciamento Seguro de Chaves**: Integração com Hardware Security Module (HSM) pronta (planejado)
-- **Trilha de Auditoria**: Histórico completo de transações e relatórios de conformidade
-- **Operações Type-Safe**: Aproveita as garantias de segurança do Rust
-- **Rastreamento de Saldo em Tempo Real**: Monitore todos os saldos de carteiras instantaneamente
-- **Transferências entre Carteiras**: Mova fundos com segurança entre carteiras
-- **Validação de Entrada**: Todas as operações são validadas antes da execução
+- **Trilha de Auditoria**: Histórico de transações para todas as operações de carteira
+- **Operações Type-Safe**: Aproveita o sistema de tipos e ownership do Rust
+- **Rastreamento de Saldo**: Monitore todos os saldos de carteiras
+- **Transferências entre Carteiras**: Mova fundos entre carteiras com validação
+- **Validação de Entrada**: Todos os valores e operações são validados antes da execução
 
 ### 🏗️ Arquitetura
 
@@ -441,11 +430,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 O sistema implementa uma arquitetura de segurança em camadas:
 
-1. **Camada de Cliente**: CLI e futura REST API
+1. **Camada de Cliente**: Interface CLI (REST API planejada para o futuro)
 2. **Sistema de Custódia**: Gerenciamento de carteiras e operações
 3. **Tipos de Carteira**: Hot wallets (operacionais) e Cold wallets (armazenamento)
-4. **Camada de Segurança**: Gerenciamento de chaves, multi-assinatura, integração HSM
-5. **Auditoria e Compliance**: Registro completo de transações
+4. **Trilha de Auditoria**: Registro de transações para todas as operações
 
 ### 🔒 Fluxo de Segurança
 
@@ -454,7 +442,7 @@ O sistema implementa uma arquitetura de segurança em camadas:
 ### 🛠️ Instalação
 
 ```bash
-git clone https://github.com/gabriellafis/securevault.git
+git clone https://github.com/galafis/securevault.git
 cd securevault
 cargo build --release
 ```
@@ -569,7 +557,7 @@ fn main() {
 
 ### 🧪 Testes
 
-O projeto inclui cobertura de testes abrangente com mais de 21 testes unitários cobrindo:
+O projeto inclui 41 testes unitários e 1 doc test cobrindo:
 
 - Criação e gerenciamento de carteiras
 - Operações de depósito e saque
@@ -603,7 +591,7 @@ cargo test -- --nocapture
 
 #### Pré-requisitos
 
-- Rust 1.90 ou superior
+- Rust 1.70 ou superior
 - Cargo (vem com Rust)
 
 #### Construindo a partir do código-fonte
@@ -683,8 +671,3 @@ Este projeto está licenciado sob a Licença MIT - consulte o arquivo [LICENSE](
 ### 👤 Autor
 
 **Gabriel Demetrios Lafis**
-- Analista e Desenvolvedor de Sistemas
-- Gestor de Tecnologia da Informação
-- Especialista em Segurança Cibernética
-- Business Intelligence / Business Analyst
-- Analista e Cientista de Dados
