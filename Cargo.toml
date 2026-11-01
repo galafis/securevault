@@ -3,7 +3,7 @@ name = "securevault"
 version = "1.0.0"
 edition = "2021"
 authors = ["Gabriel Demetrios Lafis"]
-description = "Cryptocurrency custody system with hot/cold wallet separation and transaction audit trails"
+description = "In-memory cryptocurrency custody ledger with hot/cold wallet separation and a transaction audit trail (study project, not production software)"
 license = "MIT"
 
 [dependencies]
