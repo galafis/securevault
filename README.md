@@ -1,11 +1,10 @@
-# 🔒 Securevault
+# 🔒 SecureVault
 
-> Secure credential and secrets management system. Implements AES-256 encryption, key rotation, access control, and audit logging for sensitive data storage.
+> In-memory cryptocurrency custody ledger in Rust: hot/cold wallet separation, deposits, withdrawals, transfers and a per-wallet transaction audit trail. A small, well-tested library plus a demo binary — **not** a secrets manager and **not** production-ready custody software.
 
 ![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![CI](https://img.shields.io/github/actions/workflow/status/galafis/securevault/ci.yml?style=for-the-badge&label=CI)
 ![License-MIT](https://img.shields.io/badge/License--MIT-yellow?style=for-the-badge)
-
 
 [English](#english) | [Português](#português)
 
@@ -13,275 +12,151 @@
 
 ## English
 
-### 🎯 Overview
+### What it is
 
-**Securevault** is a production-grade Rust application that showcases modern software engineering practices including clean architecture, comprehensive testing, containerized deployment, and CI/CD readiness.
+`securevault` is a single-crate Rust library (`src/lib.rs`, ~230 lines of code plus ~40 unit tests) that models a custody ledger:
 
-The codebase comprises **1,523 lines** of source code organized across **6 modules**, following industry best practices for maintainability, scalability, and code quality.
+- `Wallet` with an `id`, `address`, `balance` and `WalletType::{Hot, Cold}`
+- `CustodySystem`, an in-memory `HashMap` of wallets plus an append-only `Vec<Transaction>`
+- `deposit`, `withdraw` and `transfer` with validation (positive amounts, existing wallets, sufficient funds)
+- Query helpers: `get_wallet`, `get_all_wallets`, `get_total_balance`, `get_wallet_transactions`, `get_all_transactions`
 
-### ✨ Key Features
+`src/main.rs` is a demo that creates two wallets, moves funds between them and prints the history.
 
-- **🔒 Authentication**: JWT-based authentication with token refresh
-- **🛡️ Authorization**: Role-based access control (RBAC)
-- **🔐 Encryption**: AES-256 encryption for sensitive data
-- **📝 Audit Logging**: Complete audit trail for all operations
-- **🐳 Containerized**: Docker support for consistent deployment
-- **🏗️ Object-Oriented**: 3 core classes with clean architecture
+### What it is *not*
 
-### 🏗️ Architecture
+Earlier versions of this README advertised AES-256 encryption, JWT authentication, RBAC, key rotation and rate limiting. **None of that exists in the code.** There is no persistence, no network layer, no cryptography and no access control. Treat this repository as a study of a clean domain model with good test coverage, nothing more.
+
+Balances use `f64`. Floating-point math is not exact, so this is unsuitable for real money; a production ledger would use integer units (satoshis/wei) or a fixed-precision decimal type.
+
+### Architecture
 
 ```mermaid
 graph TB
-    subgraph Core["🏗️ Core"]
-        A[Main Module]
-        B[Business Logic]
-        C[Data Processing]
-    end
-    
-    subgraph Support["🔧 Support"]
-        D[Configuration]
-        E[Utilities]
-        F[Tests]
-    end
-    
-    A --> B --> C
-    D --> A
-    E --> B
-    F -.-> B
-    
-    style Core fill:#e1f5fe
-    style Support fill:#f3e5f5
+    CLI[main.rs demo / examples] --> CS[CustodySystem]
+    CS --> W[(HashMap&lt;String, Wallet&gt;)]
+    CS --> T[(Vec&lt;Transaction&gt;)]
+    CS --> DEP[deposit]
+    CS --> WITH[withdraw]
+    CS --> TXF[transfer]
+    DEP --> T
+    WITH --> T
+    TXF --> T
 ```
 
-```mermaid
-classDiagram
-    class CustodySystem
-    class Transaction
-    class Wallet
-```
+The sequence diagram in [`docs/security_flow.mmd`](docs/security_flow.mmd) walks through a deposit/withdraw/transfer cycle.
 
-### 🚀 Quick Start
-
-#### Prerequisites
-
-- Rust 1.75+ (via [rustup](https://rustup.rs/))
-- Cargo (included with Rust)
-
-#### Installation
+### Quick start
 
 ```bash
-# Clone the repository
 git clone https://github.com/galafis/securevault.git
 cd securevault
-
-# Build in release mode
-cargo build --release
+cargo run --release            # demo binary
+cargo run --example basic      # or: error_handling, transaction_history, transfer
+cargo test                     # unit + integration + doc tests
 ```
 
-#### Running
+Requires Rust 1.75+ (edition 2021). The only dependency is `serde`.
 
-```bash
-# Run the application
-cargo run --release
+### Library usage
 
-# Or run the binary directly
-./target/release/securevault
+```rust
+use securevault::{CustodySystem, WalletType};
+
+let mut system = CustodySystem::new();
+system.create_wallet("hot".into(), "0xabc".into(), WalletType::Hot)?;
+system.create_wallet("cold".into(), "0xdef".into(), WalletType::Cold)?;
+system.deposit("hot", 10.0)?;
+system.transfer("hot", "cold", 4.0)?;
+assert_eq!(system.get_wallet("cold").unwrap().balance, 4.0);
+# Ok::<(), String>(())
 ```
 
-### 📁 Project Structure
+Errors are returned as `Result<_, String>`; nothing panics on invalid input.
+
+### Project structure
 
 ```
 securevault/
-├── docs/          # Documentation
-│   └── images/
-├── examples/
-│   ├── basic.rs
-│   ├── error_handling.rs
-│   ├── transaction_history.rs
-│   └── transfer.rs
-├── src/          # Source code
-│   ├── lib.rs
-│   └── main.rs
-├── tests/         # Test suite
-│   └── test_main.rs
-├── CONTRIBUTING.md
-├── Cargo.toml
-├── Dockerfile
-├── LICENSE
-├── README.md
-└── SECURITY.md
+├── .github/workflows/ci.yml   # fmt, clippy -D warnings, tests, example run
+├── docs/                      # Mermaid diagrams (+ rendered PNGs)
+├── examples/                  # basic, error_handling, transaction_history, transfer
+├── src/lib.rs                 # Wallet, Transaction, CustodySystem (+ unit tests)
+├── src/main.rs                # demo binary
+├── tests/test_main.rs         # integration tests through the public API
+├── Cargo.toml                 # serde only
+└── Dockerfile                 # builds and runs the demo binary
 ```
 
-### 🔒 Security Considerations
+### Development
 
-| Feature | Implementation |
-|---------|---------------|
-| **Authentication** | JWT tokens with configurable expiration |
-| **Authorization** | Role-based access control (RBAC) |
-| **Input Validation** | Schema-based validation on all endpoints |
-| **Rate Limiting** | Configurable request throttling |
-| **Data Encryption** | AES-256 for sensitive data at rest |
-| **SQL Injection** | ORM-based queries prevent injection |
-| **CORS** | Configurable CORS policies |
-| **Audit Logging** | Complete request/response audit trail |
+```bash
+cargo fmt --all --check
+cargo clippy --all-targets -- -D warnings
+cargo test --all-targets
+```
 
-> ⚠️ **Production Deployment**: Always configure proper SSL/TLS, rotate secrets regularly, and follow the principle of least privilege.
+CI runs exactly these commands on every push and pull request.
 
-### 🛠️ Tech Stack
+### Roadmap (if this ever grows up)
 
-| Technology | Description | Role |
-|------------|-------------|------|
-| **Rust** | Core Language | Primary |
-| **Docker** | Containerization platform | Framework |
+1. Replace `f64` with integer base units or `rust_decimal`.
+2. Persist the ledger (SQLite or an append-only file) instead of `HashMap`.
+3. Only then consider encryption at rest and authenticated access.
 
-### 🤝 Contributing
+### License
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### 👤 Author
-
-**Gabriel Demetrios Lafis**
-- GitHub: [@galafis](https://github.com/galafis)
-- LinkedIn: [Gabriel Demetrios Lafis](https://linkedin.com/in/gabriel-demetrios-lafis)
+MIT — see [LICENSE](LICENSE).
 
 ---
 
 ## Português
 
-### 🎯 Visão Geral
+### O que é
 
-**Securevault** é uma aplicação Rust de nível profissional que demonstra práticas modernas de engenharia de software, incluindo arquitetura limpa, testes abrangentes, implantação containerizada e prontidão para CI/CD.
+`securevault` é uma biblioteca Rust de um único crate (`src/lib.rs`, ~230 linhas de código e ~40 testes unitários) que modela um ledger de custódia:
 
-A base de código compreende **1,523 linhas** de código-fonte organizadas em **6 módulos**, seguindo as melhores práticas do setor para manutenibilidade, escalabilidade e qualidade de código.
+- `Wallet` com `id`, `address`, `balance` e `WalletType::{Hot, Cold}`
+- `CustodySystem`, um `HashMap` em memória de carteiras mais um `Vec<Transaction>` só de acréscimo
+- `deposit`, `withdraw` e `transfer` com validação (valores positivos, carteiras existentes, saldo suficiente)
+- Consultas: `get_wallet`, `get_all_wallets`, `get_total_balance`, `get_wallet_transactions`, `get_all_transactions`
 
-### ✨ Funcionalidades Principais
+`src/main.rs` é uma demo que cria duas carteiras, move fundos entre elas e imprime o histórico.
 
-- **🔒 Authentication**: JWT-based authentication with token refresh
-- **🛡️ Authorization**: Role-based access control (RBAC)
-- **🔐 Encryption**: AES-256 encryption for sensitive data
-- **📝 Audit Logging**: Complete audit trail for all operations
-- **🐳 Containerized**: Docker support for consistent deployment
-- **🏗️ Object-Oriented**: 3 core classes with clean architecture
+### O que *não* é
 
-### 🏗️ Arquitetura
+Versões anteriores deste README anunciavam criptografia AES-256, autenticação JWT, RBAC, rotação de chaves e rate limiting. **Nada disso existe no código.** Não há persistência, camada de rede, criptografia nem controle de acesso. Trate este repositório como um estudo de modelo de domínio limpo e bem testado, nada além disso.
 
-```mermaid
-graph TB
-    subgraph Core["🏗️ Core"]
-        A[Main Module]
-        B[Business Logic]
-        C[Data Processing]
-    end
-    
-    subgraph Support["🔧 Support"]
-        D[Configuration]
-        E[Utilities]
-        F[Tests]
-    end
-    
-    A --> B --> C
-    D --> A
-    E --> B
-    F -.-> B
-    
-    style Core fill:#e1f5fe
-    style Support fill:#f3e5f5
-```
+Os saldos usam `f64`. Aritmética de ponto flutuante não é exata, então isso não serve para dinheiro de verdade; um ledger de produção usaria unidades inteiras (satoshis/wei) ou um tipo decimal de precisão fixa.
 
-### 🚀 Início Rápido
-
-#### Prerequisites
-
-- Rust 1.75+ (via [rustup](https://rustup.rs/))
-- Cargo (included with Rust)
-
-#### Installation
+### Início rápido
 
 ```bash
-# Clone the repository
 git clone https://github.com/galafis/securevault.git
 cd securevault
-
-# Build in release mode
-cargo build --release
+cargo run --release            # binário de demonstração
+cargo run --example basic      # ou: error_handling, transaction_history, transfer
+cargo test                     # testes unitários, de integração e de doc
 ```
 
-#### Running
+Requer Rust 1.75+ (edição 2021). A única dependência é `serde`.
+
+### Desenvolvimento
 
 ```bash
-# Run the application
-cargo run --release
-
-# Or run the binary directly
-./target/release/securevault
+cargo fmt --all --check
+cargo clippy --all-targets -- -D warnings
+cargo test --all-targets
 ```
 
-### 📁 Estrutura do Projeto
+O CI executa exatamente esses comandos a cada push e pull request.
 
-```
-securevault/
-├── docs/          # Documentation
-│   └── images/
-├── examples/
-│   ├── basic.rs
-│   ├── error_handling.rs
-│   ├── transaction_history.rs
-│   └── transfer.rs
-├── src/          # Source code
-│   ├── lib.rs
-│   └── main.rs
-├── tests/         # Test suite
-│   └── test_main.rs
-├── CONTRIBUTING.md
-├── Cargo.toml
-├── Dockerfile
-├── LICENSE
-├── README.md
-└── SECURITY.md
-```
+### Roadmap (se um dia isso crescer)
 
-### 🔒 Security Considerations
+1. Trocar `f64` por unidades inteiras ou `rust_decimal`.
+2. Persistir o ledger (SQLite ou arquivo só de acréscimo) em vez de `HashMap`.
+3. Só então pensar em criptografia em repouso e acesso autenticado.
 
-| Feature | Implementation |
-|---------|---------------|
-| **Authentication** | JWT tokens with configurable expiration |
-| **Authorization** | Role-based access control (RBAC) |
-| **Input Validation** | Schema-based validation on all endpoints |
-| **Rate Limiting** | Configurable request throttling |
-| **Data Encryption** | AES-256 for sensitive data at rest |
-| **SQL Injection** | ORM-based queries prevent injection |
-| **CORS** | Configurable CORS policies |
-| **Audit Logging** | Complete request/response audit trail |
+### Licença
 
-> ⚠️ **Production Deployment**: Always configure proper SSL/TLS, rotate secrets regularly, and follow the principle of least privilege.
-
-### 🛠️ Stack Tecnológica
-
-| Tecnologia | Descrição | Papel |
-|------------|-----------|-------|
-| **Rust** | Core Language | Primary |
-| **Docker** | Containerization platform | Framework |
-
-### 🤝 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para enviar um Pull Request.
-
-### 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
-
-### 👤 Autor
-
-**Gabriel Demetrios Lafis**
-- GitHub: [@galafis](https://github.com/galafis)
-- LinkedIn: [Gabriel Demetrios Lafis](https://linkedin.com/in/gabriel-demetrios-lafis)
+MIT — veja [LICENSE](LICENSE).
